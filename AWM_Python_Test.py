@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -23,7 +24,7 @@ def clean_data(df):
         df.loc[:, 'Sales Value'] = df['Sales Value'].fillna(df['Sales Value'].mean())
     else:
         raise ValueError("Column 'Sales Value' not found in the DataFrame.")
-    df.loc[:, 'Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    df.loc[:, 'Date'] = pd.to_datetime(df['Date'], errors='coerce') #Properly format dates
     return df
 
 #Calculate average sales per region
@@ -46,6 +47,10 @@ def top_3_products_by_region(df):
         top_3_products = pd.concat([top_3_products, region_top_products])
     top_3_products.reset_index(drop=True, inplace=True)
     return top_3_products
+
+# Determine the desktop directory dynamically
+def get_desktop_path():
+    return os.path.join(os.path.expanduser("~"), "Desktop")
 
 # Step 2: Generate Detailed Business Insights
 
@@ -222,6 +227,7 @@ def create_html_report(df, total_sales_per_region, filepath, threshold):
 
 # Main execution
 
+# Main execution
 def run_all(filepath, report_filepath, threshold=100000):
     df = load_data(filepath)
     df = clean_data(df)
@@ -230,5 +236,8 @@ def run_all(filepath, report_filepath, threshold=100000):
 
 if __name__ == '__main__':
     data_url = 'https://raw.githubusercontent.com/villacortafritz/AWM-Technical-Excercise/refs/heads/main/AWM%20Data%20-%20Fritz%20Villacorta%20-%20Raw%20Python%20Data.csv'
-    report_filepath = 'index.html'
+    
+    # Generate the file path for saving the report on the desktop
+    report_filepath = os.path.join(get_desktop_path(), 'index.html')
+    
     run_all(data_url, report_filepath, threshold=100000)
