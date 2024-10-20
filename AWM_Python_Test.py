@@ -1,17 +1,28 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
+import io
+import warnings
+warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
 # Step 1: Data Manipulation and Cleaning
 
-#Loading Raw CSV
-def load_data(filepath):
-    df = pd.read_csv(filepath)
+# Loading Raw CSV from a URL with error handling
+def load_data(url):
+    response = requests.get(url, verify=False)
+    df = pd.read_csv(io.StringIO(response.text), on_bad_lines='skip', engine='python')
+    print("First few rows of the DataFrame:\n", df.head())  # Display the first few rows
+    print("Columns in the DataFrame:", df.columns)  # Display column names
     return df
 
-#Cleaning Raw CSV
+# Clean Data with handling for column discrepancies
 def clean_data(df):
-    df.loc[:, 'Sales Value'] = df['Sales Value'].fillna(df['Sales Value'].mean())
+    df.columns = df.columns.str.strip()  # Remove leading/trailing spaces
+    if 'Sales Value' in df.columns:
+        df.loc[:, 'Sales Value'] = df['Sales Value'].fillna(df['Sales Value'].mean())
+    else:
+        raise ValueError("Column 'Sales Value' not found in the DataFrame.")
     df.loc[:, 'Date'] = pd.to_datetime(df['Date'], errors='coerce')
     return df
 
@@ -218,6 +229,6 @@ def run_all(filepath, report_filepath, threshold=100000):
     create_html_report(df, total_sales_per_region, report_filepath, threshold)
 
 if __name__ == '__main__':
-    data_filepath = '/Users/fritzvillacorta/Desktop/AWM/Cleaned_AWM_Raw_Python_Data.csv'
-    report_filepath = '/Users/fritzvillacorta/Desktop/AWM/analysis_and_insights_report.html'
-    run_all(data_filepath, report_filepath, threshold=100000)
+    data_url = 'https://raw.githubusercontent.com/villacortafritz/AWM-Technical-Excercise/refs/heads/main/AWM%20Data%20-%20Fritz%20Villacorta%20-%20Raw%20Python%20Data.csv'
+    report_filepath = 'index.html'
+    run_all(data_url, report_filepath, threshold=100000)
